@@ -1,0 +1,20 @@
+import re
+import sys
+
+d = {}
+flag = 0
+for line in sys.stdin:
+	val = int(re.findall("[0-9]+", line)[0])
+	if (val in d):
+		d.get(val).append(line)
+	else:
+		d[val]  = [line]
+
+for key in sorted(d, reverse=True):
+	if (flag<int(sys.argv[1])):
+		for v in d[key]:
+			print v.rstrip('\n')
+			flag+=1
+	else:
+		break
+

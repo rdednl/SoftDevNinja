@@ -1,0 +1,109 @@
+import socket
+import sys
+import pickle
+import datetime
+import re
+
+BUFF=1024
+
+#own functions to send and receive
+def socketsend(s, message):
+	print '> '+message
+	message = message+'\r\n'
+	s.send(message)
+	return
+
+def socketreceive(s):
+	message = s.recv(BUFF)
+	print '<'+message.rstrip('\r\n')
+	return message
+
+def recognizenr(nrtorec):
+	first=second=third=''
+	
+	#nr of char '#' for each line for each nr
+	d={"3233323":0,"1221115":1,"5215117":2,"5215125":3,"1227111":4,"7115125":5,"5216225":6,"7211111":7,"5225225":8,"5226125":9}	
+	
+	for line in nrtorec.split('\n'):
+		first+= str(line[0:9].count('#'))
+		second+= str(line[10:25].count('#'))
+		third+= str(line[26:].count('#'))
+	
+	one = d.get(first[0:7])
+	two = d.get(second[0:7])
+	three = d.get(third[0:7])
+	nr = (one*100)+(two*10)+three
+	
+	return nr
+	
+#create a socket
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+#open a connection to a certain port
+s.connect(('localhost', 9999))
+
+#hello there...
+socketreceive(s)
+#who are you?
+socketreceive(s)
+
+#telling who I am
+socketsend(s, 'tabsftw')
+
+#asking secret key
+socketreceive(s)
+
+#sending secret key
+socketsend(s, 'c6ed403ef0996dfbc4b86f941ee64734')
+
+#start guessing nr
+socketreceive(s)
+
+min=0
+max=2**20
+
+while (1):
+	num=(min+max)/2
+	socketsend(s, str(num))
+	message=socketreceive(s)
+	#print 'message 0 4 is'+message[0:4]
+	if (message[0:4]=='nope'):
+		if (message[20]=='b'):
+			min=num
+		elif (message[20]=='s'):
+			max=num
+	else:
+		break
+
+#get nr to recognize
+nrtorec = socketreceive(s)
+socketsend(s, str(recognizenr(nrtorec)))
+
+#good. (nr recognized)
+mess = socketreceive(s)
+
+#depickle datetime object
+mess = socketreceive(s)
+pickled=''
+
+for line in mess.splitlines(True)[1:-2]:
+	pickled+=line
+
+dobj = pickle.loads(pickled)
+
+print "\t\tdepickled string is: ",dobj
+
+socketsend(s, str(dobj.microsecond))
+#good
+socketreceive(s)
+#read
+mess = socketreceive(s)
+dateregex = re.compile("[0-9]{2} [A-Z][a-z]{2} [0-9]{2}")
+date = dateregex.findall(mess)[0]
+dtdate = datetime.datetime.strptime(date, "%d %b %y")
+socketsend(s, str(dtdate.strftime('%A')))
+
+mess = socketreceive(s)
+#print mess.split('\n')[2]
+
+s.close()

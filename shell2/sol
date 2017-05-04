@@ -1,0 +1,1 @@
+grep 172.30.1 | awk 'BEGIN{FS=","} (($1+$8)>1364803829) {printf "%s\n%s\n", $4,$5}' | grep -v "172.30.1.*" | while read ip; do geoiplookup $ip; done | cut -d " " -f4- | sort | uniq -c | sort -nr

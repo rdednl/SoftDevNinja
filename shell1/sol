@@ -1,0 +1,1 @@
+find $DIR_PATH*  -exec ldd {} \; | cut -d " " -f 1 | sort | uniq -c | sort -nr | grep -v "/" | grep -v "not"

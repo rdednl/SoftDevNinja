@@ -1,0 +1,85 @@
+import os
+import sys
+
+bestsolution=""
+
+def canMove(map, x, y, flags):
+	nrRows = len(map)-1
+	nrColumns = len(map[0])-1
+	#print x
+	#print y
+	#print map
+	#print flags
+	if x < 0 or x > nrRows or y < 0 or y > nrColumns:
+		return False
+	if (flags[x][y]==1):
+		return False	
+
+	return True
+
+def rec(map, flags, x, y, moves, endRow, endColum):
+	global bestsolution
+	if (len(moves)>=len(bestsolution)):
+		return	
+
+	#stopping condition
+	if (endRow == x and endColumn == y):
+		#finish
+		#check if it's best solution till now
+		if (len(moves)<len(bestsolution)):
+			bestsolution = moves
+		#print moves[1:]
+		return
+	
+	#try move right
+	if (canMove(map, x, y+1, flags)):
+		flags[x][y+1]=1
+		rec(map, flags, x, y+1, moves+'R', endRow, endColumn)
+		flags[x][y+1]=0
+	#try move up
+	if (canMove(map, x-1, y, flags)):
+		flags[x-1][y]=1
+		rec(map, flags,  x-1, y, moves+'U', endRow, endColumn)
+		flags[x-1][y]=0	
+	#try move left
+	if (canMove(map, x, y-1, flags)):
+		flags[x][y-1]=1
+		rec(map, flags, x, y-1, moves+'L', endRow, endColumn)
+		flags[x][y-1]=0
+	#try move down
+	if (canMove(map, x+1, y, flags)):
+		flags[x+1][y]=1
+		rec(map, flags, x+1, y, moves+'D', endRow, endColumn)
+		flags[x+1][y]=0
+#############
+
+map = [line.rstrip('\n') for line in open(sys.argv[1])]
+del map[-1]
+
+flags = [[0]*(len(map[0])) for x in range(len(map))]
+
+for x in range(len(map)):
+	for y in range(len(map[0])):
+		if map[x][y]=='S':
+			flags[x][y]=1
+			startRow = x
+			startColumn = y
+		if map[x][y]=='E':
+			endRow = x
+			endColumn = y
+		if map[x][y]=='O':
+			flags[x][y]=1
+			if (x+1<len(map)):
+				flags[x+1][y]=1
+
+bestsolution='A'*len(map[0])*len(map)*2
+
+#print flags
+#print map
+#sys.exit(1)
+#print startRow," ",startColumn
+#print endRow," ",endColumn
+
+rec(map, flags, startRow, startColumn, "S", endRow, endColumn)
+
+print bestsolution[1:]

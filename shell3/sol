@@ -1,0 +1,20 @@
+#!/bin/bash
+
+sol=10.0.3.2$'\n'
+
+rec() {
+	cat logs/$1.log |
+	while read ip
+	do
+		echo $ip
+		if [ $(echo $sol | grep $ip | wc -l) == 0 ]; then
+			sol=$sol$ip$'\n'
+			rec $ip
+		fi
+	done
+	
+	return 0;
+}
+
+cat logs/10.0.3.2.log | while read ip; do rec $ip; done | sort | uniq
+
